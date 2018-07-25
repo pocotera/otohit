@@ -262,8 +262,20 @@ std::shared_ptr<Burst::PlotFile> Burst::PlotDir::addPlotFile(const Poco::File& f
 
 	std::string errorString = "";
 
-	if (result == PlotCheckResult::Incomplete)
-		errorString = "The plotfile is incomplete!";
+		if (result == PlotCheckResult::Incomplete)
+	{
+		// plot file is already in our list
+		for (size_t i = 0; i < plotfiles_.size(); i++)
+			if (plotfiles_[i]->getPath() == file.path())
+				return plotfiles_[i];
+
+		// make a new plotfile and add it to the list
+		auto plotFile = std::make_shared<PlotFile>(std::string(file.path()), file.getSize());
+		plotfiles_.emplace_back(plotFile);
+		size_ += file.getSize();
+
+		return plotFile;
+	}
 
 	if (result == PlotCheckResult::InvalidParameter)
 		errorString = "The plotfile has invalid parameters!";
